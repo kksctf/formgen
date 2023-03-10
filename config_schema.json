@@ -1,0 +1,575 @@
+{
+  "title": "IBImageConfig",
+  "description": "Configuration of an image to build.",
+  "type": "object",
+  "properties": {
+    "name": {
+      "title": "Name",
+      "description": "Image name",
+      "default": "new_image",
+      "maxLength": 256,
+      "minLength": 1,
+      "pattern": "^[^\\/<>:\"\\|?*]*$",
+      "type": "string"
+    },
+    "author": {
+      "title": "Author",
+      "description": "Creator of image",
+      "default": "unknown",
+      "maxLength": 256,
+      "minLength": 1,
+      "pattern": "^[^\\/<>:\"\\|?*]*$",
+      "type": "string"
+    },
+    "is_temporary": {
+      "title": "Is Temporary",
+      "description": "If true, image would not be cached",
+      "default": false,
+      "type": "boolean"
+    },
+    "os": {
+      "description": "Distribution that used to build an image.",
+      "default": "archlinux",
+      "allOf": [
+        {
+          "$ref": "#/definitions/OS"
+        }
+      ],
+      "title": "Os"
+    },
+    "appearance": {
+      "title": "Appearance",
+      "description": "Graphics, hostname, localization settings and etc.",
+      "default": {
+        "graphics": false,
+        "hostname": "cycJ7uk",
+        "domain_name": "cypol",
+        "russian_tty": true,
+        "remove_package_manager": false
+      },
+      "allOf": [
+        {
+          "$ref": "#/definitions/ICAppearance"
+        }
+      ]
+    },
+    "software": {
+      "title": "Software",
+      "description": "Choose pre-installed software",
+      "default": {
+        "sysapps": [
+          "man",
+          "powerline",
+          "powerline-fonts",
+          "zsh"
+        ],
+        "devtools": [
+          "gdb",
+          "git",
+          "tmux",
+          "file",
+          "gcc",
+          "grep",
+          "make",
+          "patch",
+          "sed",
+          "which"
+        ],
+        "editors": [
+          "vim",
+          "nano"
+        ],
+        "network": [
+          "wget"
+        ],
+        "emulation": [],
+        "additional": ""
+      },
+      "allOf": [
+        {
+          "$ref": "#/definitions/ICSoftware"
+        }
+      ]
+    },
+    "advanced": {
+      "title": "Advanced",
+      "description": "Advanced settings (bootloader, partition sizes and etc).",
+      "default": {
+        "gr": true,
+        "host_threads": 0,
+        "installation": {
+          "os_specific": {
+            "archlinux": {},
+            "gentoo": {
+              "architecture": "amd64",
+              "profile_version": "",
+              "profile_type": "none",
+              "menuconfig": false
+            }
+          },
+          "bootloader": "none",
+          "efi": false
+        },
+        "distribution": {
+          "root_size": "20G",
+          "swap": false,
+          "swap_size": "2G"
+        }
+      },
+      "allOf": [
+        {
+          "$ref": "#/definitions/ICAdvanced"
+        }
+      ]
+    }
+  },
+  "definitions": {
+    "OS": {
+      "title": "OS",
+      "description": "Distribution that used to build an image.",
+      "enum": [
+        "gentoo",
+        "archlinux"
+      ],
+      "type": "string"
+    },
+    "ICAppearance": {
+      "title": "ICAppearance",
+      "description": "Graphics, hostname, localization settings and etc.",
+      "type": "object",
+      "properties": {
+        "graphics": {
+          "title": "Graphics",
+          "description": "Install graphics (X11) (lightdm+xfce4)",
+          "default": false,
+          "type": "boolean"
+        },
+        "hostname": {
+          "title": "Hostname",
+          "description": "Hostname set to /etc/hostname and /etc/hosts",
+          "default": "cycJ7uk",
+          "pattern": "^(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\\-]*[a-zA-Z0-9])\\.)*([A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9\\-]*[A-Za-z0-9])$",
+          "type": "string"
+        },
+        "domain_name": {
+          "title": "Domain Name",
+          "default": "cypol",
+          "pattern": "^(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\\-]*[a-zA-Z0-9])\\.)*([A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9\\-]*[A-Za-z0-9])$",
+          "type": "string"
+        },
+        "russian_tty": {
+          "title": "Russian Tty",
+          "description": "Add russian keyboard layout and font to tty",
+          "default": true,
+          "type": "boolean"
+        },
+        "remove_package_manager": {
+          "title": "Remove Package Manager",
+          "description": "Remove all files that belongs to package manager",
+          "default": false,
+          "type": "boolean"
+        }
+      }
+    },
+    "ICSoftwareSysapps": {
+      "title": "ICSoftwareSysapps",
+      "description": "Common linux utilities.",
+      "enum": [
+        "man",
+        "p7zip",
+        "openssh",
+        "powerline",
+        "powerline-fonts",
+        "zip",
+        "zsh"
+      ],
+      "type": "string"
+    },
+    "ICSoftwareDevtools": {
+      "title": "ICSoftwareDevtools",
+      "description": "Tools for development and debug.",
+      "enum": [
+        "boost",
+        "cmake",
+        "cpio",
+        "gdb",
+        "git",
+        "hteditor",
+        "nasm",
+        "python",
+        "python-pip",
+        "tmux",
+        "base-devel",
+        "autoconf",
+        "automake",
+        "binutils",
+        "bison",
+        "fakeroot",
+        "file",
+        "findutils",
+        "flex",
+        "gawk",
+        "gcc",
+        "gettext",
+        "grep",
+        "groff",
+        "gzip",
+        "libtool",
+        "m4",
+        "make",
+        "patch",
+        "pkgconf",
+        "sed",
+        "sudo",
+        "texinfo",
+        "which"
+      ],
+      "type": "string"
+    },
+    "ICSoftwareEditors": {
+      "title": "ICSoftwareEditors",
+      "description": "Text editors, processors and IDE.",
+      "enum": [
+        "vim",
+        "nano",
+        "emacs",
+        "codeblocks"
+      ],
+      "type": "string"
+    },
+    "ICSoftwareNetwork": {
+      "title": "ICSoftwareNetwork",
+      "description": "Networking libs, traffic sniffing, netcat.",
+      "enum": [
+        "gnu-netcat",
+        "wget",
+        "curl",
+        "tcpdump",
+        "wireshark",
+        "libnet"
+      ],
+      "type": "string"
+    },
+    "ICSoftwareEmulation": {
+      "title": "ICSoftwareEmulation",
+      "description": "Software for emulation, virtual machines.",
+      "enum": [
+        "docker",
+        "qemu",
+        "virtualbox",
+        "vmware"
+      ],
+      "type": "string"
+    },
+    "ICSoftware": {
+      "title": "ICSoftware",
+      "description": "Choose pre-installed software",
+      "type": "object",
+      "properties": {
+        "sysapps": {
+          "description": "Common linux utilities.",
+          "default": [
+            "man",
+            "powerline",
+            "powerline-fonts",
+            "zsh"
+          ],
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/ICSoftwareSysapps"
+          },
+          "title": "Sysapps"
+        },
+        "devtools": {
+          "description": "Tools for development and debug.",
+          "default": [
+            "gdb",
+            "git",
+            "tmux",
+            "file",
+            "gcc",
+            "grep",
+            "make",
+            "patch",
+            "sed",
+            "which"
+          ],
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/ICSoftwareDevtools"
+          },
+          "title": "Devtools"
+        },
+        "editors": {
+          "description": "Text editors, processors and IDE.",
+          "default": [
+            "vim",
+            "nano"
+          ],
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/ICSoftwareEditors"
+          },
+          "title": "Editors"
+        },
+        "network": {
+          "description": "Networking libs, traffic sniffing, netcat.",
+          "default": [
+            "wget"
+          ],
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/ICSoftwareNetwork"
+          },
+          "title": "Network"
+        },
+        "emulation": {
+          "description": "Software for emulation, virtual machines.",
+          "default": [],
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/ICSoftwareEmulation"
+          },
+          "title": "Emulation"
+        },
+        "additional": {
+          "title": "Additional",
+          "description": "Additional packages (space-separated) to setup",
+          "default": "",
+          "type": "string"
+        }
+      }
+    },
+    "ICAdvancedArchlinux": {
+      "title": "ICAdvancedArchlinux",
+      "description": "Specific archlinux settings",
+      "type": "object",
+      "properties": {}
+    },
+    "ICAdvancedGentooArchitecture": {
+      "title": "ICAdvancedGentooArchitecture",
+      "description": "Architecture of used Stage3 tarball.\n\namd64 - default architecture for modern PCs.\nx86 - choice for old PCs.",
+      "enum": [
+        "amd64",
+        "x86"
+      ],
+      "type": "string"
+    },
+    "ICAdvancedGentooProfileType": {
+      "title": "ICAdvancedGentooProfileType",
+      "description": "Choose base packets and USE set for image.\n\nnone - default profile with openrc.\ndesktop - profile with preparation for X11.\nsystemd - replace openrc with systemd.\ndesktop/systemd - replace openrc with systemd and prepare for X11.",
+      "enum": [
+        "none",
+        "desktop",
+        "systemd",
+        "desktop/systemd"
+      ],
+      "type": "string"
+    },
+    "ICAdvancedGentoo": {
+      "title": "ICAdvancedGentoo",
+      "description": "Specific gentoo settings",
+      "type": "object",
+      "properties": {
+        "architecture": {
+          "title": "Architecture",
+          "description": "Architecture of used Stage3 tarball.\n\n    amd64 - default architecture for modern PCs.\n    x86 - choice for old PCs.\n\n    ",
+          "default": "amd64",
+          "allOf": [
+            {
+              "$ref": "#/definitions/ICAdvancedGentooArchitecture"
+            }
+          ]
+        },
+        "profile_version": {
+          "title": "Profile Version",
+          "description": "Gentoo profile version. Leave empty for automagic detection.",
+          "default": "",
+          "type": "string"
+        },
+        "profile_type": {
+          "description": "Choose base packets and USE set for image.\n\n    none - default profile with openrc.\n    desktop - profile with preparation for X11.\n    systemd - replace openrc with systemd.\n    desktop/systemd - replace openrc with systemd and prepare for X11.\n\n    ",
+          "default": "none",
+          "allOf": [
+            {
+              "$ref": "#/definitions/ICAdvancedGentooProfileType"
+            }
+          ],
+          "title": "Profile Type"
+        },
+        "menuconfig": {
+          "title": "Menuconfig",
+          "description": "Perform manual menuconfig before compiling kernel",
+          "default": false,
+          "type": "boolean"
+        }
+      }
+    },
+    "ICAdvancedInstallationOSSpecific": {
+      "title": "ICAdvancedInstallationOSSpecific",
+      "description": "Specific settings for each distribution (only chosen OS matters).",
+      "type": "object",
+      "properties": {
+        "archlinux": {
+          "title": "Archlinux",
+          "description": "Specific archlinux settings",
+          "default": {},
+          "allOf": [
+            {
+              "$ref": "#/definitions/ICAdvancedArchlinux"
+            }
+          ]
+        },
+        "gentoo": {
+          "title": "Gentoo",
+          "description": "Specific gentoo settings",
+          "default": {
+            "architecture": "amd64",
+            "profile_version": "",
+            "profile_type": "none",
+            "menuconfig": false
+          },
+          "allOf": [
+            {
+              "$ref": "#/definitions/ICAdvancedGentoo"
+            }
+          ]
+        }
+      }
+    },
+    "Bootloader": {
+      "title": "Bootloader",
+      "description": "Bootloader to install (warning: lilo is incompatible with uefi).\n\ngrub - Grub:2, most popular bootloader for linux.\nlilo - small but deprecated bootloader, incompactible with uefi.\nnone - do not install bootloader (option for CyPol).",
+      "enum": [
+        "grub",
+        "lilo",
+        "none"
+      ],
+      "type": "string"
+    },
+    "ICAdvancedInstallation": {
+      "title": "ICAdvancedInstallation",
+      "description": "Bootloader, efi, specific settings.",
+      "type": "object",
+      "properties": {
+        "os_specific": {
+          "title": "Os Specific",
+          "description": "Specific settings for each distribution (only chosen OS matters).",
+          "default": {
+            "archlinux": {},
+            "gentoo": {
+              "architecture": "amd64",
+              "profile_version": "",
+              "profile_type": "none",
+              "menuconfig": false
+            }
+          },
+          "allOf": [
+            {
+              "$ref": "#/definitions/ICAdvancedInstallationOSSpecific"
+            }
+          ]
+        },
+        "bootloader": {
+          "description": "Bootloader to install (warning: lilo is incompatible with uefi).\n\n    grub - Grub:2, most popular bootloader for linux.\n    lilo - small but deprecated bootloader, incompactible with uefi.\n    none - do not install bootloader (option for CyPol).\n\n    ",
+          "default": "none",
+          "allOf": [
+            {
+              "$ref": "#/definitions/Bootloader"
+            }
+          ],
+          "title": "Bootloader"
+        },
+        "efi": {
+          "title": "Efi",
+          "description": "Use EFI of legacy boot",
+          "default": false,
+          "type": "boolean"
+        }
+      }
+    },
+    "ICAdvancedDistribution": {
+      "title": "ICAdvancedDistribution",
+      "description": "Partitions and other distribution script settings.",
+      "type": "object",
+      "properties": {
+        "root_size": {
+          "title": "Root Size",
+          "description": "Root partition size (e.g. 20G); used in fdisk script",
+          "default": "20G",
+          "pattern": "^\\d+([KBMGTPEZY](i?B)?)?$",
+          "type": "string"
+        },
+        "swap": {
+          "title": "Swap",
+          "description": "If swap enabled",
+          "default": false,
+          "type": "boolean"
+        },
+        "swap_size": {
+          "title": "Swap Size",
+          "description": "Swap partition size (e.g. 2G).; used in fdisk script",
+          "default": "2G",
+          "pattern": "^\\d+([KBMGTPEZY](i?B)?)?$",
+          "type": "string"
+        }
+      }
+    },
+    "ICAdvanced": {
+      "title": "ICAdvanced",
+      "description": "Advanced settings (bootloader, partition sizes and etc).",
+      "type": "object",
+      "properties": {
+        "gr": {
+          "title": "Gr",
+          "description": "Include gr",
+          "default": true,
+          "type": "boolean"
+        },
+        "host_threads": {
+          "title": "Host Threads",
+          "description": "Threads on target host. Set 0 to use default settings.",
+          "default": 0,
+          "minimum": 0,
+          "type": "integer"
+        },
+        "installation": {
+          "title": "Installation",
+          "description": "Bootloader, efi, specific settings.",
+          "default": {
+            "os_specific": {
+              "archlinux": {},
+              "gentoo": {
+                "architecture": "amd64",
+                "profile_version": "",
+                "profile_type": "none",
+                "menuconfig": false
+              }
+            },
+            "bootloader": "none",
+            "efi": false
+          },
+          "allOf": [
+            {
+              "$ref": "#/definitions/ICAdvancedInstallation"
+            }
+          ]
+        },
+        "distribution": {
+          "title": "Distribution",
+          "description": "Partitions and other distribution script settings.",
+          "default": {
+            "root_size": "20G",
+            "swap": false,
+            "swap_size": "2G"
+          },
+          "allOf": [
+            {
+              "$ref": "#/definitions/ICAdvancedDistribution"
+            }
+          ]
+        }
+      }
+    }
+  }
+}
