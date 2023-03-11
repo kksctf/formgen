@@ -74,6 +74,19 @@ def generate_form_inner(
     return Tags(tags)
 
 
+def check_for_optional(annotation: type) -> bool:
+    origin = get_origin(annotation)
+    args = get_args(annotation)
+
+    if origin not in [typing.Union, types.UnionType]:
+        return False
+
+    if type(None) in args:
+        return True
+
+    return False
+
+
 def get_input(
     model_type: Type[PydanticModel],
     model: PydanticModel | None,
@@ -86,9 +99,63 @@ def get_input(
     value = getattr(model, field_name) if model and field_name in model.__fields_set__ else field.default
     origin = get_origin(field.annotation)
     args = get_args(field.annotation)
+    is_optional = check_for_optional(field.annotation)
+
+    if is_optional:  # TODO: do something with optional
+        ret = f"OPTIONAL, {field.annotation = }, {field.sub_fields = }"
+        ret = ret.replace("<", "&lt;").replace(">", "&gt;")
+        ret = f"<pre> {ret} </pre>"
+        return DummyTag(ret)
+
+    if origin in [typing.Union, types.UnionType] and all(issubclass(arg, BaseModel) for arg in args):
+        raw_opts: list[OptionTag] = []
+        raw_divs: list = []
+
+        for united_model in args:
+            united_model: Type[BaseModel]
+            model_name = united_model.__name__
+            inner_form = generate_form_inner(
+                model_type=united_model,
+                model=value,
+                field_name_root=field_name,
+            )
+            raw_opts.append(
+                OptionTag(
+                    value=model_name,
+                    selected=False,
+                ),
+            )
+            raw_divs.append(
+                DivTag(
+                    id=f"class-selector-forms-{ field_name }",
+                    class_="form_class_selector_class",
+                    tags=[inner_form],
+                    extra_attrs={
+                        "data-propname": field_name,
+                        "data-ref": model_name,
+                    },  # | attribs,
+                ),
+            )
+
+        return Tags(
+            [
+                SelectTag(
+                    id=f"class-selector-{ field_name }",
+                    class_="form-control form_class_selector form-select",
+                    options=raw_opts,
+                    extra_attrs={
+                        "data-propname": field_name,
+                    },  # | attribs,
+                ),
+                DivTag(
+                    class_="form_class_selector_list",
+                    tags=raw_divs,
+                ),
+            ],
+        )
 
     if origin in [typing.Union, types.UnionType]:
-        ret = f"UNION, {field.annotation = }, {field.sub_fields = }"
+        ret = f"GENERIC_UNION, {field.annotation = }, {field.sub_fields = }"
         ret = ret.replace("<", "&lt;").replace(">", "&gt;")
         ret = f"<pre> {ret} </pre>"
         return DummyTag(ret)

@@ -63,6 +63,9 @@ class TestModel(BaseModel):
 
     united: str | bool = False
 
+    optional_field: str | None = None
+    optional_field_1: int | None = Field(default=None, description="ehe1")
+
     # it's time for crazy solution.
     # Taken from https://github.com/samuelcolvin/pydantic/issues/619#issuecomment-635784061
     @validator("sub", pre=True)
