@@ -33,6 +33,8 @@ class Enumed(str, Enum):
 
 
 class TestModel(BaseModel):
+    some_aliased: str = Field(default="keke", alias="someAliased")
+
     some_id: uuid.UUID = Field(default_factory=uuid.uuid4)
 
     some_str: str
@@ -56,6 +58,8 @@ class TestModel(BaseModel):
 
     some_enum: Enumed = Field()
     some_enum_with_def: Enumed = Field(default=Enumed.val2, description="kekeke")
+
+    some_enum_list: list[Enumed] = Field(default=[Enumed.val1, Enumed.val3], description="ehehehe")
 
     united: str | bool = False
 

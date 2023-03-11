@@ -3,6 +3,7 @@ from fastapi import FastAPI
 from fastapi.responses import HTMLResponse
 
 from gen import generate_form
+from gen.gen2 import generate_form as generate_form_v2
 from gen.schema import Types
 from test import TestModel, BaseSubModelN1, BaseSubModelN2, Enumed
 
@@ -139,28 +140,27 @@ def load_test() -> HTMLResponse:
         some_enum=Enumed.val3,
     )
 
-    schema = TestModel.schema()
-
     try:
-        form = generate_form(
-            schema,
+        form = generate_form_v2(
+            model_type=TestModel,
+            model=test_model,
             form_id="test-form",
-            values=test_model.dict(),
-            overrides={
-                "description": Types.textarea,
-                "description_html": Types.html,
-                "sub": Types.class_,
-                "sub_1": Types.class_,
-            },
-            attribs={
-                "some_id": {"readonly": True},
-                # "sub": {"classtype": ["readonly"]},
-            },
+            # values=test_model.dict(),
+            # overrides={
+            #     "description": Types.textarea,
+            #     "description_html": Types.html,
+            #     "sub": Types.class_,
+            #     "sub_1": Types.class_,
+            # },
+            # attribs={
+            #     "some_id": {"readonly": True},
+            #     # "sub": {"classtype": ["readonly"]},
+            # },
         )
     except Exception as ex:  # noqa: PIE786, BLE001, W0703
         form = f"<pre>{ str(ex) }</pre>"
 
-    body = f"{form}\n\n <pre> {json.dumps(schema, indent=4)} </pre>"
+    body = f"{form}\n\n"
     return HTMLResponse(base.format(body=body, scripts=scripts))
 
 
