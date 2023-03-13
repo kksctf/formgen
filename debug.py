@@ -120,6 +120,10 @@ $(document).ready(function() {
         theme: "bootstrap-5",
         closeOnSelect: false,
     });
+    $("form").submit(function(event) {
+        event.preventDefault();
+        getFormData(this);
+    });
 });
 </script>
 """  # noqa: E501
