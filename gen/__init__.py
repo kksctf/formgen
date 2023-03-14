@@ -1,1 +1,1 @@
-from .gen import generate_form
+from .gen2 import generate_form

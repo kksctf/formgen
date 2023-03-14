@@ -98,7 +98,8 @@ def get_input(
     ret = "fallback, "
 
     field_name = (field_name_root + "." if field_name_root else "") + field.alias
-    value = getattr(model, field_name) if model and field_name in model.__fields_set__ else field.default
+    field_last = field.alias
+    value = getattr(model, field_last) if model and field_last in model.__fields_set__ else field.default
     origin = get_origin(field.annotation)
     args = get_args(field.annotation)
     is_optional = check_for_optional(field.annotation)
@@ -142,6 +143,7 @@ def get_input(
         return Tags(
             [
                 SelectTag(
+                    name=field_name,
                     id=f"class-selector-{ field_name }",
                     class_="form-control form_class_selector form-select",
                     options=raw_opts,
@@ -167,13 +169,14 @@ def get_input(
         members = enum._member_map_  # noqa: SLF001, W0212 # i know.
 
         return SelectTag(
+            name=field_name,
             class_="form-select",
             options=[
                 OptionTag(
-                    value=enum_val,
+                    value=str(enum_val),
                     selected=enum_val == value,
                 )
-                for enum_val in members
+                for enum_val in members.values()
             ],
         )
 
@@ -181,13 +184,14 @@ def get_input(
         members = enum._member_map_  # noqa: SLF001, W0212 # i know.
 
         return SelectTag(
+            name=field_name,
             class_="form-select form-select-multiple",
             options=[
                 OptionTag(
-                    value=enum_val,
+                    value=str(enum_val),
                     selected=enum_val in value,
                 )
-                for enum_val in members
+                for enum_val in members.values()
             ],
             multiple=True,
         )

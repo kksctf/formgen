@@ -152,6 +152,7 @@ class OptionTag(HTMLTag):
 
 @dataclass
 class SelectTag(HTMLTag):
+    name: str = ""
     options: list[OptionTag] = field(default_factory=list)
     multiple: bool | None = None
 
@@ -191,3 +192,16 @@ class FormTag(HTMLTag, Tags):
     def __str__(self) -> str:
         inner_tags = Tags.__str__(self)
         return f"<form {self.full_attrs}>\n{inner_tags}\n</form>"
+
+
+@dataclass
+class FieldsetTag(HTMLTag, Tags):
+    def alias(self, value_name: str) -> str | None:
+        match value_name:
+            case "tags":
+                return None
+        return super().alias(value_name)
+
+    def __str__(self) -> str:
+        inner_tags = Tags.__str__(self)
+        return f"<fieldset {self.full_attrs}>\n{inner_tags}\n</fieldset>"
