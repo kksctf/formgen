@@ -155,6 +155,7 @@ class SelectTag(HTMLTag):
     name: str = ""
     options: list[OptionTag] = field(default_factory=list)
     multiple: bool | None = None
+    disabled: bool | None = None
 
     def alias(self, value_name: str) -> str | None:
         match value_name:

@@ -31,10 +31,14 @@ def generate_form(
     model: PydanticModel | None = None,
     form_id: str = "",
     form_class: str = "",
+    readonly: bool = False,
+    disabled_fields: list[str] | None = None,
 ) -> Tag:
     form_body = generate_form_inner(
         model_type=model_type,
         model=model,
+        readonly=readonly,
+        disabled_fields=disabled_fields,
     )
 
     return FormTag(
@@ -56,8 +60,11 @@ def generate_form_inner(
     model_type: Type[PydanticModel],
     model: PydanticModel | None = None,
     field_name_root: str | None = None,
+    readonly: bool = False,
+    disabled_fields: list[str] | None = None,
 ) -> Tag:
     tags = []
+    disabled_fields = disabled_fields or []
 
     for field in model_type.__fields__.values():
         input_body = get_input(
@@ -66,11 +73,14 @@ def generate_form_inner(
             field_name=field.name,
             field=field,
             field_name_root=field_name_root,
+            readonly=readonly,
+            disabled_fields=disabled_fields
         )
 
         label = LabelTag(class_="col-2 col-form-label", label=field.name)
         div0 = DivTag(class_="col", tags=[input_body])
-        div = DivTag(class_="form-group row", tags=[label, div0])
+        div_id = ('div_' + (field_name_root + '.' if field_name_root else '') + field.alias).replace('.', '__')
+        div = DivTag(class_="form-group row", tags=[label, div0], id=div_id)
         tags.append(PTag(class_="my-1", tags=[div]))
     return Tags(tags)
 
@@ -94,8 +104,11 @@ def get_input(
     field_name: str,
     field: ModelField,
     field_name_root: str | None = None,
+    readonly: bool = False,
+    disabled_fields: list[str] | None = None,
 ) -> Tag:
     ret = "fallback, "
+    disabled_fields = disabled_fields or []
 
     field_name = (field_name_root + "." if field_name_root else "") + field.alias
     field_last = field.alias
@@ -103,6 +116,7 @@ def get_input(
     origin = get_origin(field.annotation)
     args = get_args(field.annotation)
     is_optional = check_for_optional(field.annotation)
+    disabled = (True if readonly or (field_name in disabled_fields) else None)
 
     if is_optional:  # TODO: do something with optional
         ret = f"OPTIONAL, {field.annotation = }, {field.sub_fields = }"
@@ -147,6 +161,7 @@ def get_input(
                     id=f"class-selector-{ field_name }",
                     class_="form-control form_class_selector form-select",
                     options=raw_opts,
+                    disabled=disabled,
                     extra_attrs={
                         "data-propname": field_name,
                     },  # | attribs,
@@ -178,6 +193,7 @@ def get_input(
                 )
                 for enum_val in members.values()
             ],
+            disabled=disabled,
         )
 
     if origin == list and issubclass((enum := args[0]), Enum):
@@ -193,6 +209,7 @@ def get_input(
                 )
                 for enum_val in members.values()
             ],
+            disabled=disabled,
             multiple=True,
         )
 
@@ -215,6 +232,7 @@ def get_input(
             name=field_name,
             placeholder=field.field_info.description or field_name,
             value=str(value),
+            disabled=disabled,
             # extra_attrs=attribs,
         )
         if origin == typing.Literal:  # noqa: W0143
@@ -227,6 +245,7 @@ def get_input(
             type_="checkbox",
             name=field_name,
             checked=bool(value),
+            disabled=disabled,
             # extra_attrs=attribs,
         )
 
@@ -235,6 +254,7 @@ def get_input(
             type_="number",
             name=field_name,
             value=str(value),
+            disabled=disabled,
             # extra_attrs=attribs,
         )
 
@@ -243,6 +263,8 @@ def get_input(
             model_type=field.annotation,
             model=value,
             field_name_root=field_name,
+            readonly=readonly,
+            disabled_fields=disabled_fields,
         )
 
     ret += f"{field.annotation = }, {field.sub_fields = }"
