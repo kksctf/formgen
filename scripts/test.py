@@ -1,6 +1,6 @@
 import datetime
 from enum import Enum
-from typing import Literal
+from typing import Annotated, Literal
 import uuid
 import pytest
 from pydantic import BaseModel, Field, validator
@@ -40,7 +40,7 @@ class TestModel(BaseModel):
     some_str: str
     some_initialized_str: str = "initializer"
 
-    sub: BaseSubModel | BaseSubModelN1 | BaseSubModelN2
+    sub: Annotated[BaseSubModel | BaseSubModelN1 | BaseSubModelN2, Field(discriminator="classtype")]
     sub_1: BaseSubModelN1
 
     description: str
@@ -65,22 +65,3 @@ class TestModel(BaseModel):
 
     optional_field: str | None = None
     optional_field_1: int | None = Field(default=None, description="ehe1")
-
-    # it's time for crazy solution.
-    # Taken from https://github.com/samuelcolvin/pydantic/issues/619#issuecomment-635784061
-    @validator("sub", pre=True)
-    def validate_scoring(cls, value: object) -> BaseModel:  # noqa: E0213, N805
-        if isinstance(value, BaseModel):
-            return value
-        if not isinstance(value, dict):
-            raise ValueError("value must be dict")  # noqa: TRY004 # no,
-
-        match value.get("classtype"):
-            case "BaseSubModel":
-                return BaseSubModel(**value)
-            case "BaseSubModelN1":
-                return BaseSubModelN1(**value)
-            case "BaseSubModelN2":
-                return BaseSubModelN2(**value)
-            case classtype:
-                raise ValueError(f"Unkonwn classtype {classtype}")
