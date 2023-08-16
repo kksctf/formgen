@@ -2,7 +2,7 @@
 
 from dataclasses import dataclass
 from typing import Any
-from .tags import (
+from ..tags import (
     ButtonTag,
     DivTag,
     DummyTag,

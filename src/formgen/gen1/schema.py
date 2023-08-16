@@ -1,9 +1,10 @@
 # ruff: noqa: A003
 
 from enum import Enum
+from typing import TypeAlias
 from pydantic import BaseModel, Field
 
-VAL = dict | list | str | bool | None
+VAL: TypeAlias = dict | list | str | bool | None
 
 
 class Types(Enum):

@@ -1,14 +1,13 @@
 import types
 import typing
-import uuid
-from dataclasses import dataclass
 from enum import Enum
 from typing import Any, Type, TypeVar, get_args, get_origin
 
 from pydantic import BaseModel
-from pydantic.fields import ModelField
+from pydantic.fields import FieldInfo
+from pydantic_core._pydantic_core import PydanticUndefined
 
-from .tags import (
+from ..tags import (
     ButtonTag,
     DivTag,
     DummyTag,
@@ -66,20 +65,24 @@ def generate_form_inner(
     tags = []
     disabled_fields = disabled_fields or []
 
-    for field in model_type.__fields__.values():
+    for field_name, field in model_type.model_fields.items():
         input_body = get_input(
             model_type=model_type,
             model=model,
-            field_name=field.name,
+            field_name=field_name,
             field=field,
             field_name_root=field_name_root,
             readonly=readonly,
-            disabled_fields=disabled_fields
+            disabled_fields=disabled_fields,
         )
 
-        label = LabelTag(class_="col-2 col-form-label", label=field.name)
+        label = LabelTag(class_="col-2 col-form-label", label=field_name)
         div0 = DivTag(class_="col", tags=[input_body])
-        div_id = ('div_' + (field_name_root + '.' if field_name_root else '') + field.alias).replace('.', '__')
+
+        _div_id_p_0 = field_name_root + "." if field_name_root else ""
+        _dir_id_p_1 = field.alias or field_name
+        div_id = ("div_" + _div_id_p_0 + _dir_id_p_1).replace(".", "__")
+
         div = DivTag(class_="form-group row", tags=[label, div0], id=div_id)
         tags.append(PTag(class_="my-1", tags=[div]))
     return Tags(tags)
@@ -102,7 +105,7 @@ def get_input(
     model_type: Type[PydanticModel],
     model: PydanticModel | None,
     field_name: str,
-    field: ModelField,
+    field: FieldInfo,
     field_name_root: str | None = None,
     readonly: bool = False,
     disabled_fields: list[str] | None = None,
@@ -110,16 +113,26 @@ def get_input(
     ret = "fallback, "
     disabled_fields = disabled_fields or []
 
-    field_name = (field_name_root + "." if field_name_root else "") + field.alias
+    if not field.annotation:
+        ret = f"EMPTY field.annotation, {field.annotation = }, {field = }"
+        ret = ret.replace("<", "&lt;").replace(">", "&gt;")
+        ret = f"<pre> {ret} </pre>"
+        return DummyTag(ret)
+
+    field_name = (field_name_root + "." if field_name_root else "") + (field.alias or field_name)
     field_last = field.alias
-    value = getattr(model, field_last) if model and field_last in model.__fields_set__ else field.default
+
+    value = getattr(model, field_last) if model and field_last in model.model_fields_set else field.default
     origin = get_origin(field.annotation)
     args = get_args(field.annotation)
     is_optional = check_for_optional(field.annotation)
-    disabled = (True if readonly or (field_name in disabled_fields) else None)
+    disabled = True if readonly or (field_name in disabled_fields) else None
+
+    if value == PydanticUndefined:
+        value = None
 
     if is_optional:  # TODO: do something with optional
-        ret = f"OPTIONAL, {field.annotation = }, {field.sub_fields = }"
+        ret = f"OPTIONAL, {field.annotation = }, {field = }"
         ret = ret.replace("<", "&lt;").replace(">", "&gt;")
         ret = f"<pre> {ret} </pre>"
         return DummyTag(ret)
@@ -174,10 +187,21 @@ def get_input(
         )
 
     if origin in [typing.Union, types.UnionType]:
-        ret = f"GENERIC_UNION, {field.annotation = }, {field.sub_fields = }"
+        ret = f"GENERIC_UNION, {field.annotation = }, {get_args(field.annotation) = }"
         ret = ret.replace("<", "&lt;").replace(">", "&gt;")
         ret = f"<pre> {ret} </pre>"
         return DummyTag(ret)
+
+    if origin == typing.Literal:  # noqa: W0143
+        return InputTag(
+            class_="form-control",
+            type_="text",
+            name=field_name,
+            placeholder=field.description or field_name,
+            value=str(value),
+            disabled=True,
+            # extra_attrs=attribs,
+        )
 
     if issubclass(field.annotation, Enum):
         enum: Type[Enum] = field.annotation
@@ -205,7 +229,7 @@ def get_input(
             options=[
                 OptionTag(
                     value=str(enum_val),
-                    selected=enum_val in value,
+                    selected=((enum_val in value) if value else False),
                 )
                 for enum_val in members.values()
             ],
@@ -214,29 +238,27 @@ def get_input(
         )
 
     if origin == list:
-        ret = f"LIST, {field.annotation = }, {field.sub_fields = }"
+        ret = f"LIST, {field.annotation = }, {get_args(field.annotation) = }"
         ret = ret.replace("<", "&lt;").replace(">", "&gt;")
         ret = f"<pre> {ret} </pre>"
         return DummyTag(ret)
 
     if origin == dict:
-        ret = f"DICT, {field.annotation = }, {field.sub_fields = }"
+        ret = f"DICT, {field.annotation = }, {get_args(field.annotation) = }"
         ret = ret.replace("<", "&lt;").replace(">", "&gt;")
         ret = f"<pre> {ret} </pre>"
         return DummyTag(ret)
 
-    if origin == typing.Literal or issubclass(field.annotation, str):  # noqa: W0143
+    if issubclass(field.annotation, str):  # noqa: W0143
         out_tag = InputTag(
             class_="form-control",
             type_="text",
             name=field_name,
-            placeholder=field.field_info.description or field_name,
-            value=str(value),
+            placeholder=field.description or field_name,
+            value=str(value or ""),
             disabled=disabled,
             # extra_attrs=attribs,
         )
-        if origin == typing.Literal:  # noqa: W0143
-            out_tag.disabled = True
         return out_tag
 
     if issubclass(field.annotation, bool):
@@ -244,7 +266,7 @@ def get_input(
             class_="my-2 form-check-input",
             type_="checkbox",
             name=field_name,
-            checked=bool(value),
+            checked=bool(value or False),
             disabled=disabled,
             # extra_attrs=attribs,
         )
@@ -253,7 +275,7 @@ def get_input(
         return InputTag(
             type_="number",
             name=field_name,
-            value=str(value),
+            value=str(value or 0),
             disabled=disabled,
             # extra_attrs=attribs,
         )
@@ -267,7 +289,7 @@ def get_input(
             disabled_fields=disabled_fields,
         )
 
-    ret += f"{field.annotation = }, {field.sub_fields = }"
+    ret += f"{field.annotation = }, {field = }"
     ret = ret.replace("<", "&lt;").replace(">", "&gt;")
     ret = f"<pre> {ret} </pre>"
     return DummyTag(ret)
