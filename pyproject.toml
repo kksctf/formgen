@@ -1,0 +1,29 @@
+[project]
+name = "formgen"
+version = "0.0.1"
+
+authors = [
+    { name = "Rubikoid", email = "rubikoid@kksctf.ru" },
+    { name = "kserg9707", email = "comservi@ya.ru" },
+]
+description = "generate HTML forms from pydantic models"
+
+requires-python = ">=3.11"
+
+classifiers = ["Programming Language :: Python :: 3.11"]
+
+dependencies = ["pydantic ~= 2.1"]
+
+
+[build-system]
+build-backend = "setuptools.build_meta"
+requires = ["setuptools ~= 64.0.0", "wheel ~= 0.37.1"]
+
+[tool.black]
+line-length = 120
+target_version = ['py311']
+
+[tool.ruff]
+line-length = 120
+fix = false
+target-version = "py311"
